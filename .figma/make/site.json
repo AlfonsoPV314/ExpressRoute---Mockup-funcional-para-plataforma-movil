@@ -1,0 +1,10 @@
+{
+  "description": "This app streamlines package delivery for drivers, providing route planning, real-time updates, and essential delivery information for efficient operations.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

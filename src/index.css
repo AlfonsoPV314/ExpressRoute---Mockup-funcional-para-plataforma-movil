@@ -1,0 +1,99 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import 'tailwindcss';
+
+/* Scale every rem-based Tailwind class 1.25× for landscape tablet */
+html {
+  font-size: 20px;
+}
+
+@theme {
+  --font-sans: 'Inter', sans-serif;
+  --color-bg: #060d1a;
+  --color-surface: #0c1a2e;
+  --color-surface2: #112038;
+  --color-border: #1a3352;
+  --color-blue: #2563eb;
+  --color-blue-light: #3b82f6;
+  --color-blue-glow: #60a5fa;
+  --color-green: #16a34a;
+  --color-green-light: #22c55e;
+  --color-red: #dc2626;
+  --color-red-light: #ef4444;
+  --color-text: #e2e8f0;
+  --color-text-muted: #94a3b8;
+  --color-text-dim: #4a6080;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+body {
+  background: #060d1a;
+  color: #e2e8f0;
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Hide scrollbar but allow scrolling */
+.scrollable {
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.scrollable::-webkit-scrollbar {
+  display: none;
+}
+
+/* Leaflet map dark overrides */
+.leaflet-container {
+  background: #060d1a;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Brighten tile layer so streets are more legible against dark bg */
+.leaflet-tile-pane {
+  filter: brightness(1.5) contrast(1.08);
+}
+
+/* Pulsing driver dot */
+@keyframes pulse-ring {
+  0% { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+.driver-pulse::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: rgba(59, 130, 246, 0.5);
+  animation: pulse-ring 1.8s ease-out infinite;
+}
+
+/* Alert button press feedback */
+@keyframes alert-tap {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(0.92); }
+}
+
+.alert-tap {
+  animation: alert-tap 0.15s ease;
+}
+
+/* Alert confirmation fade */
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in-up {
+  animation: fade-in-up 0.35s ease forwards;
+}
