@@ -1,11 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 @import 'tailwindcss';
 
-/* Scale every rem-based Tailwind class 1.25× for landscape tablet */
-html {
-  font-size: 20px;
-}
-
 @theme {
   --font-sans: 'Inter', sans-serif;
   --color-bg: #060d1a;
@@ -28,22 +23,43 @@ html {
   box-sizing: border-box;
 }
 
-html, body, #root {
-  height: 100%;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
+/* Base global */
+html {
+  font-size: 16px; /* Mantiene la escala estándar para evitar desbordes */
+  background-color: #030712; /* Fondo oscuro exterior para el PC */
 }
 
 body {
-  background: #060d1a;
+  margin: 0;
+  padding: 0;
+  background-color: #030712;
   color: #e2e8f0;
   font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-/* Hide scrollbar but allow scrolling */
+/* El contenedor principal de React donde se fuerza la resolución de Tablet */
+#root {
+  width: 100%;
+  max-width: 1180px;
+  height: 820px;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+  background: #060d1a;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.9);
+  border-radius: 12px;
+
+  /* Aplica la escala idéntica a hacer 67% de zoom out */
+  transform: scale(0.75);
+  transform-origin: top center; /* Mantiene la tablet centrada arriba */
+}
+
+/* Esconder scrollbar */
 .scrollable {
   overflow-y: auto;
   scrollbar-width: none;
@@ -56,14 +72,15 @@ body {
 .leaflet-container {
   background: #060d1a;
   font-family: 'Inter', sans-serif;
+  height: 100%;
+  width: 100%;
 }
 
-/* Brighten tile layer so streets are more legible against dark bg */
 .leaflet-tile-pane {
   filter: brightness(1.5) contrast(1.08);
 }
 
-/* Pulsing driver dot */
+/* Animaciones */
 @keyframes pulse-ring {
   0% { transform: scale(0.8); opacity: 1; }
   100% { transform: scale(2.2); opacity: 0; }
@@ -78,7 +95,6 @@ body {
   animation: pulse-ring 1.8s ease-out infinite;
 }
 
-/* Alert button press feedback */
 @keyframes alert-tap {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(0.92); }
@@ -88,7 +104,6 @@ body {
   animation: alert-tap 0.15s ease;
 }
 
-/* Alert confirmation fade */
 @keyframes fade-in-up {
   from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
