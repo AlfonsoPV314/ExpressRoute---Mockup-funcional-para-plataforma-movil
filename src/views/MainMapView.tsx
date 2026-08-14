@@ -133,7 +133,7 @@ export default function MainMapView({
       <AppHeader onNavigate={onNavigate} onLogout={onLogout} />
 
       {/* Recenter button */}
-      {leafletMap && (
+      {leafletMap && !showPkgDetail && (
         <button
           onClick={() => leafletMap.flyTo(driverPos, 16)}
           title="Centrar en mi posición"
