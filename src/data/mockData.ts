@@ -42,7 +42,7 @@ export const PACKAGES: Package[] = [
     // Stop 1 — already delivered. Placed at the intersection of
     // Av. Lo Echevers and Calle Los Almendros, SOUTHWEST of the
     // driver's current position, so the completed route segment
-    // (Hub → stop 1 → driver) traces a natural southbound arc.
+    // (Hub → stop 1 → driver) traces a natural southbound arc
     id: 'PKG-001',
     product: 'Hervidor Eléctrico',
     fragile: false,

@@ -27,7 +27,7 @@ export default function App() {
   const handleEmergency = () => setView('off')
   const handleWake = () => setView('main')
 
-  // Live package list — statuses derived from deliveredIds
+  // Live package list — statuses derived from deliveredIds.
   const packages = PACKAGES.map((p) => ({
     ...p,
     status: (deliveredIds.has(p.id) ? 'delivered' : 'pending') as PackageStatus,
