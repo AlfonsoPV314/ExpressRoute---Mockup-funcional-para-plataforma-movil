@@ -1,21 +1,22 @@
 import { useState } from 'react'
 import AppHeader, { type View } from '../components/AppHeader'
-import { PACKAGES, type Package, formatDeliveryId } from '../data/mockData'
+import { type Package, formatDeliveryId } from '../data/mockData'
 
 interface PackageListViewProps {
   onNavigate: (view: View) => void
   onLogout: () => void
+  packages: Package[]
 }
 
-export default function PackageListView({ onNavigate, onLogout }: PackageListViewProps) {
+export default function PackageListView({ onNavigate, onLogout, packages }: PackageListViewProps) {
   const [selected, setSelected] = useState<Package | null>(null)
 
   if (selected) {
     return <DeliveryDetail pkg={selected} onBack={() => setSelected(null)} />
   }
 
-  const pendingCount = PACKAGES.filter((p) => p.status === 'pending').length
-  const deliveredCount = PACKAGES.filter((p) => p.status === 'delivered').length
+  const pendingCount = packages.filter((p) => p.status === 'pending').length
+  const deliveredCount = packages.filter((p) => p.status === 'delivered').length
 
   return (
     <div className="relative w-full h-full flex flex-col" style={{ background: '#060d1a' }}>
@@ -26,7 +27,7 @@ export default function PackageListView({ onNavigate, onLogout }: PackageListVie
         <div className="px-5 py-4" style={{ borderBottom: '1px solid #1a3352' }}>
           <h1 className="text-3xl font-bold text-white">Entregas de la Ruta</h1>
           <div className="flex gap-3 mt-2">
-            <StatPill label="Total" value={PACKAGES.length} color="#60a5fa" />
+            <StatPill label="Total" value={packages.length} color="#60a5fa" />
             <StatPill label="Entregados" value={deliveredCount} color="#22c55e" />
             <StatPill label="Pendientes" value={pendingCount} color="#f59e0b" />
           </div>
@@ -34,13 +35,13 @@ export default function PackageListView({ onNavigate, onLogout }: PackageListVie
 
         {/* Delivery list */}
         <div className="scrollable flex-1 overflow-y-auto">
-          {PACKAGES.map((pkg, i) => (
+          {packages.map((pkg, i) => (
             <button
               key={pkg.id}
               onClick={() => setSelected(pkg)}
               className="w-full text-left px-5 py-5 flex items-center gap-4 transition-colors"
               style={{
-                borderBottom: i < PACKAGES.length - 1 ? '1px solid #1a3352' : 'none',
+                borderBottom: i < packages.length - 1 ? '1px solid #1a3352' : 'none',
                 background: 'transparent',
               }}
               onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(37,99,235,0.07)' }}

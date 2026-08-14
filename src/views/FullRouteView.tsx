@@ -3,12 +3,9 @@ import { MapContainer, TileLayer, Polyline, Marker, useMap } from 'react-leaflet
 import L from 'leaflet'
 import AppHeader, { type View } from '../components/AppHeader'
 import {
-  PACKAGES,
-  DRIVER_POSITION,
+  type Package,
   QUILICURA_CENTER,
   HUB_POSITION,
-  COMPLETED_ROUTE_WAYPOINTS,
-  ACTIVE_ROUTE_WAYPOINTS,
   formatDeliveryId,
 } from '../data/mockData'
 import { useOSRMRoute } from '../hooks/useOSRMRoute'
@@ -16,6 +13,8 @@ import { useOSRMRoute } from '../hooks/useOSRMRoute'
 interface FullRouteViewProps {
   onNavigate: (view: View) => void
   onLogout: () => void
+  packages: Package[]
+  driverPos: [number, number]
 }
 
 function makeHubIcon() {
@@ -65,26 +64,42 @@ function MapCapture({ onReady }: { onReady: (m: L.Map) => void }) {
   return null
 }
 
-export default function FullRouteView({ onNavigate, onLogout }: FullRouteViewProps) {
+export default function FullRouteView({ onNavigate, onLogout, packages, driverPos }: FullRouteViewProps) {
   const hubIcon = useMemo(() => makeHubIcon(), [])
   const driverIcon = useMemo(() => makeDriverIcon(), [])
   const stopIcons = useMemo(
-    () => PACKAGES.map((pkg) => makeStopIcon(pkg.stopNumber, pkg.status === 'delivered')),
-    [],
+    () => packages.map((pkg) => makeStopIcon(pkg.stopNumber, pkg.status === 'delivered')),
+    [packages],
   )
   const [leafletMap, setLeafletMap] = useState<L.Map | null>(null)
   const [showCompleted, setShowCompleted] = useState(true)
 
-  const { route: completedRoute } = useOSRMRoute(COMPLETED_ROUTE_WAYPOINTS)
-  const { route: activeRoute } = useOSRMRoute(ACTIVE_ROUTE_WAYPOINTS)
+  const deliveredPackages = packages.filter((p) => p.status === 'delivered')
+  const pendingPackages = packages.filter((p) => p.status === 'pending')
+
+  const completedWaypoints = useMemo<[number, number][]>(
+    () => [HUB_POSITION, ...deliveredPackages.map((p) => p.coords), driverPos],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [JSON.stringify(deliveredPackages.map((p) => p.id)), JSON.stringify(driverPos)],
+  )
+  const activeWaypoints = useMemo<[number, number][]>(
+    () => pendingPackages.length > 0
+      ? [driverPos, ...pendingPackages.map((p) => p.coords), HUB_POSITION]
+      : [driverPos, HUB_POSITION],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [JSON.stringify(pendingPackages.map((p) => p.id)), JSON.stringify(driverPos)],
+  )
+
+  const { route: completedRoute } = useOSRMRoute(completedWaypoints)
+  const { route: activeRoute } = useOSRMRoute(activeWaypoints)
 
   useEffect(() => {
     // @ts-ignore
     delete L.Icon.Default.prototype._getIconUrl
   }, [])
 
-  const pendingCount = PACKAGES.filter((p) => p.status === 'pending').length
-  const deliveredCount = PACKAGES.filter((p) => p.status === 'delivered').length
+  const pendingCount = pendingPackages.length
+  const deliveredCount = deliveredPackages.length
 
   return (
     <div className="relative w-full h-full flex flex-col" style={{ background: '#060d1a' }}>
@@ -124,11 +139,11 @@ export default function FullRouteView({ onNavigate, onLogout }: FullRouteViewPro
             </div>
 
             {/* Package stops */}
-            {PACKAGES.map((pkg, i) => (
+            {packages.map((pkg, i) => (
               <div
                 key={pkg.id}
                 className="px-4 py-3 flex items-start gap-3"
-                style={{ borderBottom: i < PACKAGES.length - 1 ? '1px solid #1a3352' : 'none' }}
+                style={{ borderBottom: i < packages.length - 1 ? '1px solid #1a3352' : 'none' }}
               >
                 <div
                   className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5"
@@ -277,9 +292,9 @@ export default function FullRouteView({ onNavigate, onLogout }: FullRouteViewPro
             />
 
             <Marker position={HUB_POSITION} icon={hubIcon} />
-            <Marker position={DRIVER_POSITION} icon={driverIcon} />
+            <Marker position={driverPos} icon={driverIcon} />
 
-            {PACKAGES.map((pkg, i) => {
+            {packages.map((pkg, i) => {
               // Hide delivered stops when "ver ruta recorrida" is off
               if (pkg.status === 'delivered' && !showCompleted) return null
               return <Marker key={pkg.id} position={pkg.coords} icon={stopIcons[i]} />
@@ -293,7 +308,7 @@ export default function FullRouteView({ onNavigate, onLogout }: FullRouteViewPro
       {/* Recenter button — fixed, right side, vertically centered (above alert) */}
       {leafletMap && (
         <button
-          onClick={() => leafletMap.flyTo(DRIVER_POSITION, 13)}
+          onClick={() => leafletMap.flyTo(driverPos, 13)}
           title="Centrar en mi posición"
           style={{
             position: 'fixed',
