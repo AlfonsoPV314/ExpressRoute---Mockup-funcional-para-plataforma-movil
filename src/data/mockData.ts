@@ -52,7 +52,7 @@ export const PACKAGES: Package[] = [
     status: 'delivered',
     coords: [-33.356, -70.739],
     stopNumber: 1,
-    packageSerials: ['SN-A4821', 'SN-A4822'],
+    packageSerials: ['PKG-001'],
   },
   {
     id: 'PKG-002',
@@ -64,7 +64,7 @@ export const PACKAGES: Package[] = [
     status: 'pending',
     coords: [-33.352, -70.728],
     stopNumber: 2,
-    packageSerials: ['SN-B1034', 'SN-B1035', 'SN-B1036'],
+    packageSerials: ['PKG-002'],
   },
   {
     id: 'PKG-003',
@@ -76,7 +76,7 @@ export const PACKAGES: Package[] = [
     status: 'pending',
     coords: [-33.356, -70.721],
     stopNumber: 3,
-    packageSerials: ['SN-C7201'],
+    packageSerials: ['PKG-003'],
   },
   {
     id: 'PKG-004',
@@ -88,7 +88,7 @@ export const PACKAGES: Package[] = [
     status: 'pending',
     coords: [-33.361, -70.716],
     stopNumber: 4,
-    packageSerials: ['SN-D3382'],
+    packageSerials: ['PKG-004'],
   },
   {
     id: 'PKG-005',
@@ -100,7 +100,7 @@ export const PACKAGES: Package[] = [
     status: 'pending',
     coords: [-33.365, -70.724],
     stopNumber: 5,
-    packageSerials: ['SN-E9901', 'SN-E9902'],
+    packageSerials: ['PKG-005'],
   },
   {
     id: 'PKG-006',
@@ -112,7 +112,7 @@ export const PACKAGES: Package[] = [
     status: 'pending',
     coords: [-33.358, -70.733],
     stopNumber: 6,
-    packageSerials: ['SN-F5541', 'SN-F5542', 'SN-F5543'],
+    packageSerials: ['PKG-006'],
   },
 ]
 
