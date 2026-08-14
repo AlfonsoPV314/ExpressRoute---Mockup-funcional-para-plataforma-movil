@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo } from 'react'
-import { MapContainer, TileLayer, Polyline, CircleMarker, Marker, Tooltip } from 'react-leaflet'
+import { MapContainer, TileLayer, Polyline, CircleMarker, Marker, Tooltip, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import AppHeader, { type View } from '../components/AppHeader'
-import { NEXT_PACKAGE, DRIVER_POSITION, NEXT_STOP_ROUTE } from '../data/mockData'
+import { NEXT_PACKAGE, DRIVER_POSITION, NEXT_STOP_ROUTE, formatDeliveryId } from '../data/mockData'
+import { useOSRMRoute } from '../hooks/useOSRMRoute'
 
 interface MainMapViewProps {
   onNavigate: (view: View) => void
@@ -28,11 +29,21 @@ function makeDriverIcon() {
   })
 }
 
+// Captures the map instance from inside MapContainer context
+function MapCapture({ onReady }: { onReady: (m: L.Map) => void }) {
+  const m = useMap()
+  useEffect(() => { onReady(m) }, [m, onReady])
+  return null
+}
+
 export default function MainMapView({ onNavigate, onLogout }: MainMapViewProps) {
   const driverIcon = useMemo(() => makeDriverIcon(), [])
   const [showPkgDetail, setShowPkgDetail] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [deliveryDone, setDeliveryDone] = useState(false)
+  const [leafletMap, setLeafletMap] = useState<L.Map | null>(null)
+
+  const { route } = useOSRMRoute(NEXT_STOP_ROUTE)
 
   useEffect(() => {
     // @ts-ignore
@@ -65,10 +76,12 @@ export default function MainMapView({ onNavigate, onLogout }: MainMapViewProps) 
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           subdomains="abcd"
           maxZoom={19}
+          tileSize={512}
+          zoomOffset={-1}
         />
 
         <Polyline
-          positions={NEXT_STOP_ROUTE}
+          positions={route}
           pathOptions={{ color: '#3b82f6', weight: 5, dashArray: '12, 10', opacity: 0.9 }}
         />
 
@@ -87,9 +100,41 @@ export default function MainMapView({ onNavigate, onLogout }: MainMapViewProps) 
             <span style={{ fontSize: '0.7rem', fontFamily: 'Inter' }}>Destino</span>
           </Tooltip>
         </CircleMarker>
+
+        <MapCapture onReady={setLeafletMap} />
       </MapContainer>
 
       <AppHeader onNavigate={onNavigate} onLogout={onLogout} />
+
+      {/* Recenter button — fixed, right side, vertically centered (above alert) */}
+      {leafletMap && (
+        <button
+          onClick={() => leafletMap.flyTo(DRIVER_POSITION, 16)}
+          title="Centrar en mi posición"
+          style={{
+            position: 'fixed',
+            right: '1.25rem',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            zIndex: 9985,
+            width: '3rem',
+            height: '3rem',
+            borderRadius: '0.75rem',
+            background: 'rgba(12,26,46,0.92)',
+            border: '1.5px solid #1a3352',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+            fontSize: '1.3rem',
+            color: '#60a5fa',
+          }}
+        >
+          ◎
+        </button>
+      )}
 
       {/* Package card */}
       <button
@@ -113,6 +158,12 @@ export default function MainMapView({ onNavigate, onLogout }: MainMapViewProps) 
             >
               Siguiente
             </div>
+            <div
+              className="rounded-lg px-2 py-0.5 text-xs font-bold tracking-wide"
+              style={{ background: 'rgba(37,99,235,0.15)', color: '#93c5fd' }}
+            >
+              {formatDeliveryId(nextPkg.id)}
+            </div>
             {nextPkg.fragile && (
               <div
                 className="rounded-lg px-2 py-0.5 text-xs font-bold uppercase tracking-wide"
@@ -122,7 +173,9 @@ export default function MainMapView({ onNavigate, onLogout }: MainMapViewProps) 
               </div>
             )}
           </div>
-          <p className="font-bold text-white text-lg leading-tight mb-3">{nextPkg.product}</p>
+          <p className="font-bold text-white text-lg leading-tight mb-3">
+            Parada #{nextPkg.stopNumber}
+          </p>
           <div className="flex flex-col gap-1.5">
             <InfoRow icon="📍" label={nextPkg.destination} />
             <InfoRow icon="👤" label={nextPkg.recipient} />
@@ -157,15 +210,20 @@ export default function MainMapView({ onNavigate, onLogout }: MainMapViewProps) 
               style={{ borderBottom: '1px solid #1a3352' }}
             >
               <div>
-                <h2 className="text-xl font-bold text-white">{nextPkg.product}</h2>
-                <p className="text-sm mt-0.5" style={{ color: '#94a3b8' }}>
-                  {nextPkg.id} · Parada #{nextPkg.stopNumber}
+                <div className="flex items-center gap-2 mb-1">
+                  <h2 className="text-xl font-bold text-white">Parada #{nextPkg.stopNumber}</h2>
+                  <span
+                    className="text-sm font-bold px-2 py-0.5 rounded"
+                    style={{ background: 'rgba(37,99,235,0.2)', color: '#93c5fd' }}
+                  >
+                    {formatDeliveryId(nextPkg.id)}
+                  </span>
                   {nextPkg.fragile && (
-                    <span className="ml-2 text-xs font-bold px-1.5 py-0.5 rounded" style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171' }}>
+                    <span className="text-xs font-bold px-1.5 py-0.5 rounded" style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171' }}>
                       ⚠ Frágil
                     </span>
                   )}
-                </p>
+                </div>
               </div>
               <button
                 onClick={closeModal}
@@ -188,6 +246,25 @@ export default function MainMapView({ onNavigate, onLogout }: MainMapViewProps) 
               <div style={{ marginTop: '0.875rem' }}>
                 <ModalRow icon="📍" label="Dirección" value={nextPkg.destination} />
               </div>
+
+              {/* Package serials */}
+              <div style={{ marginTop: '0.875rem' }}>
+                <p className="text-sm font-medium mb-2" style={{ color: '#4a6080' }}>
+                  Bultos a entregar ({nextPkg.packageSerials.length})
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {nextPkg.packageSerials.map((serial) => (
+                    <span
+                      key={serial}
+                      className="text-base font-mono font-semibold px-3 py-1 rounded-lg"
+                      style={{ background: 'rgba(37,99,235,0.12)', color: '#93c5fd', border: '1px solid rgba(37,99,235,0.25)' }}
+                    >
+                      {serial}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
               {nextPkg.fragile && (
                 <div
                   className="flex items-center gap-3 mt-3 rounded-xl p-3"
@@ -195,13 +272,13 @@ export default function MainMapView({ onNavigate, onLogout }: MainMapViewProps) 
                 >
                   <span style={{ fontSize: '1.25rem', flexShrink: 0 }}>⚠️</span>
                   <p className="text-base font-semibold" style={{ color: '#f87171' }}>
-                    Maneja con cuidado. Entrega en mano.
+                    Paquete frágil. Maneje con cuidado.
                   </p>
                 </div>
               )}
             </div>
 
-            {/* CTA — always visible */}
+            {/* CTA */}
             <div className="px-5 py-4 flex-shrink-0">
               {deliveryDone ? (
                 <div

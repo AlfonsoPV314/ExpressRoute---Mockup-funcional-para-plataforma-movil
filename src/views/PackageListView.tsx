@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import AppHeader, { type View } from '../components/AppHeader'
-import { PACKAGES, type Package } from '../data/mockData'
+import { PACKAGES, type Package, formatDeliveryId } from '../data/mockData'
 
 interface PackageListViewProps {
   onNavigate: (view: View) => void
@@ -11,7 +11,7 @@ export default function PackageListView({ onNavigate, onLogout }: PackageListVie
   const [selected, setSelected] = useState<Package | null>(null)
 
   if (selected) {
-    return <PackageDetail pkg={selected} onBack={() => setSelected(null)} />
+    return <DeliveryDetail pkg={selected} onBack={() => setSelected(null)} />
   }
 
   const pendingCount = PACKAGES.filter((p) => p.status === 'pending').length
@@ -24,7 +24,7 @@ export default function PackageListView({ onNavigate, onLogout }: PackageListVie
       <div className="flex flex-col flex-1 overflow-hidden pt-20">
         {/* Section title */}
         <div className="px-5 py-4" style={{ borderBottom: '1px solid #1a3352' }}>
-          <h1 className="text-3xl font-bold text-white">Paquetes de la Ruta</h1>
+          <h1 className="text-3xl font-bold text-white">Entregas de la Ruta</h1>
           <div className="flex gap-3 mt-2">
             <StatPill label="Total" value={PACKAGES.length} color="#60a5fa" />
             <StatPill label="Entregados" value={deliveredCount} color="#22c55e" />
@@ -32,7 +32,7 @@ export default function PackageListView({ onNavigate, onLogout }: PackageListVie
           </div>
         </div>
 
-        {/* Package list */}
+        {/* Delivery list */}
         <div className="scrollable flex-1 overflow-y-auto">
           {PACKAGES.map((pkg, i) => (
             <button
@@ -61,7 +61,7 @@ export default function PackageListView({ onNavigate, onLogout }: PackageListVie
               {/* Info */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="font-bold text-white text-xl truncate">{pkg.product}</span>
+                  <span className="font-bold text-white text-xl truncate">{formatDeliveryId(pkg.id)}</span>
                   {pkg.fragile && (
                     <span
                       className="text-sm font-semibold px-2 py-0.5 rounded flex-shrink-0"
@@ -104,7 +104,7 @@ export default function PackageListView({ onNavigate, onLogout }: PackageListVie
   )
 }
 
-function PackageDetail({ pkg, onBack }: { pkg: Package; onBack: () => void }) {
+function DeliveryDetail({ pkg, onBack }: { pkg: Package; onBack: () => void }) {
   return (
     <div className="w-full h-full flex flex-col" style={{ background: '#060d1a' }}>
       {/* Back header */}
@@ -114,14 +114,14 @@ function PackageDetail({ pkg, onBack }: { pkg: Package; onBack: () => void }) {
       >
         <button
           onClick={onBack}
-          className="w-13 h-13 rounded-xl flex items-center justify-center transition-colors"
+          className="rounded-xl flex items-center justify-center transition-colors"
           style={{ background: 'rgba(255,255,255,0.06)', color: '#e2e8f0', fontSize: '1.5rem', width: '3rem', height: '3rem' }}
         >
           ‹
         </button>
         <div className="flex-1">
-          <h2 className="text-xl font-bold text-white leading-tight">Detalle del Paquete</h2>
-          <p className="text-base" style={{ color: '#94a3b8' }}>{pkg.id}</p>
+          <h2 className="text-xl font-bold text-white leading-tight">Detalle de la Entrega</h2>
+          <p className="text-base" style={{ color: '#94a3b8' }}>{formatDeliveryId(pkg.id)}</p>
         </div>
         <span
           className="text-base font-semibold px-3 py-1.5 rounded-full"
@@ -136,10 +136,16 @@ function PackageDetail({ pkg, onBack }: { pkg: Package; onBack: () => void }) {
 
       {/* Detail content */}
       <div className="flex-1 scrollable overflow-y-auto px-5 py-5 flex flex-col gap-5">
-        {/* Product */}
-        <DetailCard title="Producto">
+        {/* Identification */}
+        <DetailCard title="Identificación de la Entrega">
           <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-3xl font-bold text-white">{pkg.product}</span>
+            <span className="text-3xl font-bold text-white">{formatDeliveryId(pkg.id)}</span>
+            <span
+              className="text-base font-semibold px-3 py-1.5 rounded-lg"
+              style={{ background: 'rgba(37,99,235,0.15)', color: '#93c5fd' }}
+            >
+              Parada #{pkg.stopNumber}
+            </span>
             {pkg.fragile && (
               <span
                 className="text-base font-bold px-3 py-1.5 rounded-lg"
@@ -151,11 +157,25 @@ function PackageDetail({ pkg, onBack }: { pkg: Package; onBack: () => void }) {
           </div>
         </DetailCard>
 
+        {/* Package serials */}
+        <DetailCard title={`Bultos a entregar (${pkg.packageSerials.length})`}>
+          <div className="flex flex-wrap gap-2">
+            {pkg.packageSerials.map((serial) => (
+              <span
+                key={serial}
+                className="text-lg font-mono font-semibold px-4 py-2 rounded-xl"
+                style={{ background: 'rgba(37,99,235,0.12)', color: '#93c5fd', border: '1px solid rgba(37,99,235,0.25)' }}
+              >
+                {serial}
+              </span>
+            ))}
+          </div>
+        </DetailCard>
+
         {/* Delivery info — 2-column grid */}
         <DetailCard title="Información de Entrega">
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
             <DetailRow icon="👤" label="Destinatario" value={pkg.recipient} />
-            <DetailRow icon="🔢" label="Parada" value={`#${pkg.stopNumber} de 5`} />
             <DetailRow icon="🕐" label="Hora de entrega" value={pkg.deliveryTime} accent />
           </div>
           <div style={{ marginTop: '1.25rem' }}>
@@ -173,7 +193,7 @@ function PackageDetail({ pkg, onBack }: { pkg: Package; onBack: () => void }) {
             <div>
               <p className="font-bold text-xl" style={{ color: '#f87171' }}>Paquete Frágil</p>
               <p className="text-lg mt-1" style={{ color: '#94a3b8' }}>
-                Maneja con cuidado. No apile objetos encima. Entrega en mano.
+                Paquete frágil. Maneje con cuidado.
               </p>
             </div>
           </div>

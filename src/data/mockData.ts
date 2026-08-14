@@ -10,6 +10,7 @@ export interface Package {
   status: PackageStatus
   coords: [number, number]
   stopNumber: number
+  packageSerials: string[]
 }
 
 export interface Driver {
@@ -30,26 +31,31 @@ export const DRIVER: Driver = {
   employeeId: 'EMP-0042',
 }
 
-// Quilicura, Chile center
 export const DRIVER_POSITION: [number, number] = [-33.3500, -70.7320]
-
 export const QUILICURA_CENTER: [number, number] = [-33.355, -70.724]
+
+// Distribution hub — industrial zone north of Quilicura
+export const HUB_POSITION: [number, number] = [-33.337, -70.741]
 
 export const PACKAGES: Package[] = [
   {
-    // Stop #1 — already delivered earlier in the shift
-    id: 'PKG-000',
+    // Stop 1 — already delivered. Placed at the intersection of
+    // Av. Lo Echevers and Calle Los Almendros, SOUTHWEST of the
+    // driver's current position, so the completed route segment
+    // (Hub → stop 1 → driver) traces a natural southbound arc.
+    id: 'PKG-001',
     product: 'Hervidor Eléctrico',
     fragile: false,
-    destination: 'Calle El Nogal 234, Quilicura',
+    destination: 'Av. Lo Echevers esq. Los Almendros 225, Quilicura',
     recipient: 'Sofía Vargas',
     deliveryTime: '17:45',
     status: 'delivered',
-    coords: [-33.346, -70.737],
+    coords: [-33.356, -70.739],
     stopNumber: 1,
+    packageSerials: ['SN-A4821', 'SN-A4822'],
   },
   {
-    id: 'PKG-001',
+    id: 'PKG-002',
     product: 'Set de Vasos de Cristal × 4 un.',
     fragile: true,
     destination: 'Av. Manuel Antonio Matta 1520, Quilicura',
@@ -58,9 +64,10 @@ export const PACKAGES: Package[] = [
     status: 'pending',
     coords: [-33.352, -70.728],
     stopNumber: 2,
+    packageSerials: ['SN-B1034', 'SN-B1035', 'SN-B1036'],
   },
   {
-    id: 'PKG-002',
+    id: 'PKG-003',
     product: 'Caja de Herramientas',
     fragile: false,
     destination: 'Calle Los Pinos 342, Quilicura',
@@ -69,9 +76,10 @@ export const PACKAGES: Package[] = [
     status: 'pending',
     coords: [-33.356, -70.721],
     stopNumber: 3,
+    packageSerials: ['SN-C7201'],
   },
   {
-    id: 'PKG-003',
+    id: 'PKG-004',
     product: 'Lámpara de Escritorio',
     fragile: true,
     destination: 'Pasaje Los Cipreses 18, Quilicura',
@@ -80,9 +88,10 @@ export const PACKAGES: Package[] = [
     status: 'pending',
     coords: [-33.361, -70.716],
     stopNumber: 4,
+    packageSerials: ['SN-D3382'],
   },
   {
-    id: 'PKG-004',
+    id: 'PKG-005',
     product: 'Monitor 27"',
     fragile: true,
     destination: 'Calle El Roble 789, Quilicura',
@@ -91,9 +100,10 @@ export const PACKAGES: Package[] = [
     status: 'pending',
     coords: [-33.365, -70.724],
     stopNumber: 5,
+    packageSerials: ['SN-E9901', 'SN-E9902'],
   },
   {
-    id: 'PKG-005',
+    id: 'PKG-006',
     product: 'Ropa Deportiva (x3)',
     fragile: false,
     destination: 'Av. Américo Vespucio 4230, Quilicura',
@@ -102,20 +112,34 @@ export const PACKAGES: Package[] = [
     status: 'pending',
     coords: [-33.358, -70.733],
     stopNumber: 6,
+    packageSerials: ['SN-F5541', 'SN-F5542', 'SN-F5543'],
   },
 ]
 
 // First pending package in route order
 export const NEXT_PACKAGE = PACKAGES.find((p) => p.status === 'pending')!
 
-// Full route polyline: driver → all stops in order
-export const FULL_ROUTE_COORDS: [number, number][] = [
+// Completed portion: hub → delivered stop (SW of driver) → driver position
+export const COMPLETED_ROUTE_WAYPOINTS: [number, number][] = [
+  HUB_POSITION,
+  ...PACKAGES.filter((p) => p.status === 'delivered').map((p) => p.coords),
   DRIVER_POSITION,
-  ...PACKAGES.map((p) => p.coords),
 ]
 
-// Route segment to the next pending stop only
+// Active portion: driver → remaining pending stops → back to hub
+export const ACTIVE_ROUTE_WAYPOINTS: [number, number][] = [
+  DRIVER_POSITION,
+  ...PACKAGES.filter((p) => p.status === 'pending').map((p) => p.coords),
+  HUB_POSITION,
+]
+
+// Route to next pending stop only (main map)
 export const NEXT_STOP_ROUTE: [number, number][] = [
   DRIVER_POSITION,
   NEXT_PACKAGE.coords,
 ]
+
+// Converts internal ID (PKG-001) to driver-facing label (Entrega 001)
+export function formatDeliveryId(id: string): string {
+  return id.replace('PKG-', 'Entrega ')
+}

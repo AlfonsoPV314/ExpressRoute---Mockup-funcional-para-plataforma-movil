@@ -117,8 +117,8 @@ export default function AppHeader({ onNavigate, onLogout }: AppHeaderProps) {
             <MenuItem icon="🏠" label="Vista Principal"        onClick={() => go('main')} />
             <div style={{ borderTop: '1px solid #1a3352' }} />
             <MenuItem icon="🗺️" label="Ver Ruta Completa"     onClick={() => go('fullRoute')} />
-            <MenuItem icon="📦" label="Listado de Paquetes"   onClick={() => go('packages')} />
-            <MenuItem icon="⚙️" label="Configuración de Cuenta" onClick={() => go('account')} />
+            <MenuItem icon="📦" label="Listado de Entregas"   onClick={() => go('packages')} />
+            <MenuItem icon="⚙️" label="Datos de la Cuenta"       onClick={() => go('account')} />
             <div style={{ borderTop: '1px solid #1a3352' }} />
             <MenuItem
               icon="🔓"
